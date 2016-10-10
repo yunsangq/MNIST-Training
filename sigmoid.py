@@ -1,65 +1,60 @@
-import numpy as np
 import random
+import numpy as np
 
 
 def sigmoid(x):
-    return 1.0 / (1 + np.exp(-x))
+    return 1.0/(1+np.exp(-x))
 
+class neuron(object):
+    def __init__(self, num, alpha):
+        self.num = num
+        self.input_weight = []
+        self.alpha = alpha
+        self.weight_error = []
 
-def sigmoid_prime(x):
-    return sigmoid(x) * (1 - sigmoid(x))
+    def random_weight(self):
+        for i in range(self.num + 1):
+            self.input_weight.append(random.uniform(-1, 1))
+            self.weight_error.append(0.0)
 
+    def work(self, _input):
+        _sum = 0
+        for i in range(self.num):
+            _sum += _input[i] * self.input_weight[i]
 
-class MLP(object):
-    def __init__(self, n_input, n_hidden, n_output):
-        self.n_input = n_input + 1 #bias
-        self.n_hidden = n_hidden
-        self.n_output = n_output
+        _sum += self.input_weight[self.num] * 1.0
 
-        self.a_input = [1.0] * self.n_input
-        self.a_hidden = [1.0] * self.n_hidden
-        self.a_output = [1.0] * self.n_output
+        return sigmoid(_sum)
 
-        self.w_input = np.zeros((len(self.n_input), len(self.n_hidden)))
-        self.w_output = np.zeros((len(self.n_hidden), len(self.n_output)))
+    def learn(self, _input, target):
+        output = self.work(_input)
+        output_error = output - target
+        for i in range(self.num):
+            self.weight_error[i] += output_error * _input[i] * output * (1-output)
+        self.weight_error[self.num] += output_error * 1.0 * output * (1-output)
 
-        for i in range(self.n_input):
-            for j in range(self.n_hidden):
-                self.w_input[i][j] = random.uniform(-1, 1)
+    def fix(self):
+        for i in range(self.num + 1):
+            self.input_weight[i] -= self.alpha * self.weight_error[i]
+            self.weight_error[i] = 0.0
 
-        for k in range(self.n_hidden):
-            for l in range(self.n_output):
-                self.w_output[k][l] = random.uniform(-1, 1)
+and_neuron = neuron(2, 0.1)
+and_neuron.random_weight()
 
-        self.c_input = np.zeros((len(self.n_input), len(self.n_hidden)))
-        self.c_output = np.zeros((len(self.n_hidden), len(self.n_output)))
+sample_input = {
+    0: [0, 0],
+    1: [0, 1],
+    2: [1, 0],
+    3: [1, 1]
+}
+sample_output = [0, 0, 0, 1]
 
-    def update(self, inputs):
-        if len(inputs) != self.n_input - 1:
-            raise ValueError('wrong inputs')
+for i in range(10000):
+    for j in range(4):
+        and_neuron.learn(sample_input[j], sample_output[j])
+    and_neuron.fix()
 
-        for i in range(self.n_input - 1):
-            self.a_input[i] = inputs[i]
-
-        for j in range(self.n_hidden):
-            _sum = 0.0
-            for k in range(self.n_input):
-                _sum += self.a_input[i] * self.w_input[k][j]
-            self.a_hidden[j] = sigmoid(sum)
-
-        for l in range(self.n_output):
-            _sum = 0.0
-            for n in range(self.n_hidden):
-                _sum += self.a_hidden[n] * self.w_output[n][l]
-            self.a_output[l] = sigmoid(_sum)
-
-        return self.a_output[:]
-
-    def backPropagate(self, targets, N, M):
-        if len(targets) != self.n_output:
-            raise ValueError('wrong target values')
-
-        output_deltas = [0.0] * self.n_output
-        for k in range(self.n_output):
-            error = targets[k] - self.a_output[k]
-        
+    if (i+1)%100 == 0:
+        print "---------Learn " + str(i+1) + " times---------"
+        for k in range(4):
+            print str(sample_input[k][0]) + " " + str(sample_input[k][1]) + " : " + str(and_neuron.work(sample_input[k]))
