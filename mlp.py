@@ -1,8 +1,10 @@
 import random
 import numpy as np
+import math
 import os
 import struct
 from array import array
+
 
 class MNIST(object):
     def __init__(self, path='.'):
@@ -79,18 +81,15 @@ class MNIST(object):
 
 
 def sigmoid(x):
+    #return math.tanh(x)
     return 1.0/(1+np.exp(-x))
 
 
-def dsigmoid(y):
+def sigmoid_prime(y):
     return y * (1 - y)
-    #return 1.0 - y ** 2
-
-#mn = MNIST()
-#img, label = mn.load_training()
 
 
-class mlp(object):
+class MLP(object):
     def __init__(self, n_input, n_hidden, n_output):
         self.n_input = n_input + 1
         self.n_hidden = n_hidden
@@ -139,7 +138,7 @@ class mlp(object):
         output_deltas = [0.0] * self.n_output
         for k in range(self.n_output):
             error = targets[k] - self.act_output[k]
-            output_deltas[k] = dsigmoid(self.act_output[k]) * error
+            output_deltas[k] = sigmoid_prime(self.act_output[k]) * error
 
         # calculate error for hidden
         hidden_deltas = [0.0] * self.n_hidden
@@ -147,7 +146,7 @@ class mlp(object):
             error = 0.0
             for k in range(self.n_output):
                 error += output_deltas[k] * self.weight_output[j][k]
-            hidden_deltas[j] = dsigmoid(self.act_hidden[j]) * error
+            hidden_deltas[j] = sigmoid_prime(self.act_hidden[j]) * error
 
         # update output weights
         for j in range(self.n_hidden):
@@ -166,32 +165,60 @@ class mlp(object):
         # calculate error
         error = 0.0
         for k in range(len(targets)):
-            error += 0.5 * (targets[k] - self.act_output[k]) ** 2
+            error += (targets[k] - self.act_output[k]) ** 2
 
+        error *= 0.5
         return error
 
-    def training(self, patterns, time=50000, learning_rate=0.5, momentum_factor=0.1):
+    def training(self, patterns, outputs, time=1000, learning_rate=0.5, momentum_factor=0.1):
         for i in range(time):
             error = 0.0
-            for j in patterns:
-                inputs = j[0]
-                targets = j[1]
+            for j in range(len(outputs)):
+                inputs = patterns[j]
+                targets = np.zeros(10)
+                pos = outputs[j]
+                targets[pos] = 1.0
                 self.feed_forward(inputs)
                 error += self.back_propagate(targets, learning_rate, momentum_factor)
-            if i % 10000 == 0:
+            # if i % 100 == 0:
                 print ('error %-.5f' % error)
 
-    def test(self, patterns):
-        for i in patterns:
-            print(i[0], '->', self.feed_forward(i[0]))
+    def test(self, patterns, labels):
+        for i in range(len(patterns)):
+            print(labels[i], '->', self.feed_forward(patterns[i]))
 
+
+if __name__ == '__main__':
+    mn = MNIST()
+    img, label = mn.load_training()
+    test_img, test_label = mn.load_testing()
+
+    NN = MLP(784, 15, 10)
+    NN.training(img, label)
+    NN.test(test_img, test_label)
+
+"""
 pat = [
     [[0, 0], [0]],
     [[0, 1], [1]],
     [[1, 0], [1]],
     [[1, 1], [0]]
 ]
+pat = [
+    [[0, 0]],
+    [[0, 1]],
+    [[1, 0]],
+    [[1, 1]]
+]
+answer = [
+    [0],
+    [1],
+    [1],
+    [0]
+]
+n = MLP(2, 2, 1)
+n.training(pat, answer)
+n.test(pat, answer)
+"""
 
-n = mlp(2, 2, 1)
-n.training(pat)
-n.test(pat)
+
