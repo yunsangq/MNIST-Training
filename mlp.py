@@ -1,12 +1,13 @@
 import random
 import numpy as np
-import math
 import os
 import struct
 from array import array
+import matplotlib.pyplot as plt
 
 
 class MNIST(object):
+
     def __init__(self, path='.'):
         self.path = path
 
@@ -67,26 +68,13 @@ class MNIST(object):
 
         return images, labels
 
-    @classmethod
-    def display(cls, img, width=28, threshold=200):
-        render = ''
-        for i in range(len(img)):
-            if i % width == 0:
-                render += '\n'
-            if img[i] > threshold:
-                render += '@'
-            else:
-                render += '.'
-        return render
-
 
 def sigmoid(x):
-    #return math.tanh(x)
-    return 1.0/(1+np.exp(-x))
+    return 1.0/(1.0+np.exp(-1.0 * x))
 
 
 def sigmoid_prime(y):
-    return y * (1 - y)
+    return y * (1.0 - y)
 
 
 class MLP(object):
@@ -109,13 +97,13 @@ class MLP(object):
             for j in range(self.n_output):
                 self.weight_output[i][j] = random.uniform(-1.0, 1.0)
 
-        self.change_weight_input = np.zeros((len(self.act_input), len(self.act_hidden)))
-        self.change_weight_output = np.zeros((len(self.act_hidden), len(self.act_output)))
+        self.x1 = []
+        self.y1 = []
 
     def feed_forward(self, inputs):
         # act_input
         for i in range(self.n_input - 1):
-            self.act_input[i] = inputs[i]
+            self.act_input[i] = inputs[i] / 256.0
 
         # act_hidden
         for j in range(self.n_hidden):
@@ -131,9 +119,9 @@ class MLP(object):
                 _sum += self.act_hidden[j] * self.weight_output[j][k]
             self.act_output[k] = sigmoid(_sum)
 
-        return self.act_output
+        return self.act_output.index(max(self.act_output))
 
-    def back_propagate(self, targets, n, m):
+    def back_propagate(self, targets, n):
         # calculate error for output
         output_deltas = [0.0] * self.n_output
         for k in range(self.n_output):
@@ -152,41 +140,50 @@ class MLP(object):
         for j in range(self.n_hidden):
             for k in range(self.n_output):
                 change = output_deltas[k] * self.act_hidden[j]
-                self.weight_output[j][k] += n * change + m * self.change_weight_output[j][k]
-                self.change_weight_output[j][k] = change
+                self.weight_output[j][k] += n * change
 
         # update input weights
         for i in range(self.n_input):
             for j in range(self.n_hidden):
                 change = hidden_deltas[j] * self.act_input[i]
-                self.weight_input[i][j] += n * change + m * self.change_weight_input[i][j]
-                self.change_weight_input[i][j] = change
+                self.weight_input[i][j] += n * change
 
         # calculate error
         error = 0.0
         for k in range(len(targets)):
             error += (targets[k] - self.act_output[k]) ** 2
+        error = 0.5 * np.sqrt(error) ** 2
 
-        error *= 0.5
         return error
 
-    def training(self, patterns, outputs, time=1000, learning_rate=0.5, momentum_factor=0.1):
+    def training(self, patterns, outputs, time=5, learning_rate=0.5):
         for i in range(time):
-            error = 0.0
             for j in range(len(outputs)):
                 inputs = patterns[j]
                 targets = np.zeros(10)
                 pos = outputs[j]
                 targets[pos] = 1.0
                 self.feed_forward(inputs)
-                error += self.back_propagate(targets, learning_rate, momentum_factor)
-            # if i % 100 == 0:
-                print ('error %-.5f' % error)
+                error = self.back_propagate(targets, learning_rate)
+                self.x1.append(j)
+                self.y1.append(error)
+                if j % 1000 == 0:
+                    print ('time -> ' + str(j))
+                    print ('error -> %-.5f' % error)
+            print ('epoch -> ' + str(i))
+            plt.plot(self.x1, self.y1)
+            plt.xlabel('time')
+            plt.ylabel('cost')
+            plt.show()
 
     def test(self, patterns, labels):
+        correct = 0.0
         for i in range(len(patterns)):
-            print(labels[i], '->', self.feed_forward(patterns[i]))
-
+            result = self.feed_forward(patterns[i])
+            if labels[i] == result:
+                correct += 1.0
+        print ('Correct = ' + str(correct))
+        print ('Accuracy = ' + str(correct / 10000.0 * 100.0))
 
 if __name__ == '__main__':
     mn = MNIST()
@@ -196,29 +193,3 @@ if __name__ == '__main__':
     NN = MLP(784, 15, 10)
     NN.training(img, label)
     NN.test(test_img, test_label)
-
-"""
-pat = [
-    [[0, 0], [0]],
-    [[0, 1], [1]],
-    [[1, 0], [1]],
-    [[1, 1], [0]]
-]
-pat = [
-    [[0, 0]],
-    [[0, 1]],
-    [[1, 0]],
-    [[1, 1]]
-]
-answer = [
-    [0],
-    [1],
-    [1],
-    [0]
-]
-n = MLP(2, 2, 1)
-n.training(pat, answer)
-n.test(pat, answer)
-"""
-
-

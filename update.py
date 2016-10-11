@@ -101,6 +101,9 @@ class MLP(object):
 
         self.weight_input = np.zeros((len(self.act_input), len(self.act_hidden)))
         self.weight_output = np.zeros((len(self.act_hidden), len(self.act_output)))
+        self.input_change = np.zeros((len(self.act_input), len(self.act_hidden)))
+        self.output_change = np.zeros((len(self.act_hidden), len(self.act_output)))
+
         for i in range(self.n_input):
             for j in range(self.n_hidden):
                 self.weight_input[i][j] = random.uniform(-1.0, 1.0)
@@ -108,9 +111,6 @@ class MLP(object):
         for i in range(self.n_hidden):
             for j in range(self.n_output):
                 self.weight_output[i][j] = random.uniform(-1.0, 1.0)
-
-        self.change_weight_input = np.zeros((len(self.act_input), len(self.act_hidden)))
-        self.change_weight_output = np.zeros((len(self.act_hidden), len(self.act_output)))
 
     def feed_forward(self, inputs):
         # act_input
@@ -133,7 +133,7 @@ class MLP(object):
 
         return self.act_output.index(max(self.act_output))
 
-    def back_propagate(self, targets, n, m):
+    def back_propagate(self, targets):
         # calculate error for output
         output_deltas = [0.0] * self.n_output
         for k in range(self.n_output):
@@ -151,18 +151,25 @@ class MLP(object):
         # update output weights
         for j in range(self.n_hidden):
             for k in range(self.n_output):
-                change = output_deltas[k] * self.act_hidden[j]
-                self.weight_output[j][k] += n * change + m * self.change_weight_output[j][k]
-                self.change_weight_output[j][k] = change
+                self.output_change[j][k] += output_deltas[k] * self.act_hidden[j]
 
         # update input weights
         for i in range(self.n_input):
             for j in range(self.n_hidden):
-                change = hidden_deltas[j] * self.act_input[i]
-                self.weight_input[i][j] += n * change + m * self.change_weight_input[i][j]
-                self.change_weight_input[i][j] = change
+                self.input_change[i][j] += hidden_deltas[j] * self.act_input[i]
 
-    def training(self, patterns, outputs, time=30, learning_rate=0.5, momentum_factor=0.1):
+    def update(self, n):
+        # update output weights
+        for j in range(self.n_hidden):
+            for k in range(self.n_output):
+                self.weight_output[j][k] += n * (self.output_change[j][k] / 300.0)
+
+        # update input weights
+        for i in range(self.n_input):
+            for j in range(self.n_hidden):
+                self.weight_input[i][j] += n * (self.input_change[i][j] / 300.0)
+
+    def training(self, patterns, outputs, time=10, learning_rate=0.5):
         for i in range(time):
             #for j in range(len(outputs)):
             for j in range(300):
@@ -171,8 +178,12 @@ class MLP(object):
                 pos = outputs[j]
                 targets[pos] = 1.0
                 self.feed_forward(inputs)
-                self.back_propagate(targets, learning_rate, momentum_factor)
-
+                self.back_propagate(targets)
+                """
+                if j % 500 == 0:
+                    print ('progress -> ', j)
+                """
+            self.update(learning_rate)
             print ('epoch -> ', i)
 
     def test(self, patterns, labels):

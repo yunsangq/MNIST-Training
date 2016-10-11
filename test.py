@@ -7,6 +7,7 @@
 import math
 import random
 import string
+import numpy as np
 
 random.seed(0)
 
@@ -27,10 +28,12 @@ def makeMatrix(I, J, fill=0.0):
 # our sigmoid function, tanh is a little nicer than the standard 1/(1+e^-x)
 def sigmoid(x):
     return math.tanh(x)
+    #return 1.0 / (1 + np.exp(-x))
 
 
 # derivative of our sigmoid function, in terms of the output (i.e. y)
 def dsigmoid(y):
+    #return y * (1 - y)
     return 1.0 - y ** 2
 
 
@@ -108,16 +111,15 @@ class NN:
         for j in range(self.nh):
             for k in range(self.no):
                 change = output_deltas[k] * self.ah[j]
-                self.wo[j][k] = self.wo[j][k] + N * change + M * self.co[j][k]
-                self.co[j][k] = change
+                self.wo[j][k] = self.wo[j][k] + N * change
                 # print N*change, M*self.co[j][k]
 
         # update input weights
         for i in range(self.ni):
             for j in range(self.nh):
                 change = hidden_deltas[j] * self.ai[i]
-                self.wi[i][j] = self.wi[i][j] + N * change + M * self.ci[i][j]
-                self.ci[i][j] = change
+                self.wi[i][j] = self.wi[i][j] + N * change
+
 
         # calculate error
         error = 0.0
