@@ -165,16 +165,18 @@ class MLP(object):
                 targets[pos] = 1.0
                 self.feed_forward(inputs)
                 error = self.back_propagate(targets, learning_rate)
-                self.x1.append(j)
-                self.y1.append(error)
+                # self.x1.append(j)
+                # self.y1.append(error)
                 if j % 1000 == 0:
                     print ('time -> ' + str(j))
                     print ('error -> %-.5f' % error)
             print ('epoch -> ' + str(i))
+            """
             plt.plot(self.x1, self.y1)
             plt.xlabel('time')
             plt.ylabel('cost')
             plt.show()
+            """
 
     def test(self, patterns, labels):
         correct = 0.0
@@ -190,6 +192,6 @@ if __name__ == '__main__':
     img, label = mn.load_training()
     test_img, test_label = mn.load_testing()
 
-    NN = MLP(784, 15, 10)
+    NN = MLP(784, 10, 10)
     NN.training(img, label)
     NN.test(test_img, test_label)
