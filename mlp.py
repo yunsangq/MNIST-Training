@@ -5,7 +5,7 @@ import MNIST
 import time
 
 LEARNING_RATE = 0.5
-EPOCH = 6
+EPOCH = 50
 TRAINING_DATA_SIZE = 0
 TEST_DATA_SIZE = 0
 x1 = []
@@ -83,7 +83,7 @@ class MLP(object):
                 self.change_weight_input[i][j] += n * hidden_deltas[j] * self.act_input[i]
 
         error = 0.5 * (np.array(targets) - np.array(self.act_output)) ** 2
-        return error
+        return np.linalg.norm(error)
 
     def update(self):
         for j in range(self.n_hidden):
@@ -104,23 +104,32 @@ class MLP(object):
                 self.feed_forward(inputs)
                 error += self.back_propagate(targets, LEARNING_RATE)
                 if j % 10000 == 0 and j != 0:
-                    tmp = np.linalg.norm(error) / float(j)
+                    tmp = error / float(j)
                     print ('time -> ' + str(j))
                     print ('error -> %-.5f' % tmp)
             print 'Running Time : %.02f' % (time.time() - start_time)
-            error = np.linalg.norm(error) / float(TRAINING_DATA_SIZE)
+            error /= float(TRAINING_DATA_SIZE)
             self.update()
             x1.append(i)
             y1.append(error)
             print ('epoch -> ' + str(i))
-            print ('error -> ' + str(error))
+            print ('epoch total error -> %-.5f' % error)
 
     def test(self, patterns, labels):
+        error = 0.0
+        correct = 0
         for i in range(len(patterns)):
             output = self.feed_forward(patterns[i])
-            error = 0.5 * (np.array(labels[i]) - np.array(output)) ** 2
-            error = np.linalg.norm(error)
-            print(np.array(labels[i]).argmax(), '->', np.array(output).argmax(), '%-.5f' % error)
+            error += np.linalg.norm(0.5 * (np.array(labels[i]) - np.array(output)) ** 2)
+            t = np.array(labels[i]).argmax()
+            o = np.array(output).argmax()
+            if t == o:
+                correct += 1
+            print(t, '->', o)
+        error /= float(TEST_DATA_SIZE)
+        print ('TEST error : %-.5f' % error)
+        acc = correct / TEST_DATA_SIZE * 100
+        print ('Accuracy : ' + str(acc))
 
 if __name__ == '__main__':
     mn = MNIST.MNIST()
