@@ -1,13 +1,19 @@
 import random
 import MNIST
-import math
 import numpy as np
+import matplotlib.pyplot as plt
 
+EPOCH = 10000
+TRAINING_DATA = 0
+TEST_DATA = 0
+x1 = []
+y1 = []
 
 class NeuralNetwork:
     LEARNING_RATE = 0.5
 
-    def __init__(self, n_inputs, n_hidden, n_outputs, weights_hidden = None, bias_hidden = None, weights_output = None, bias_output = None):
+    def __init__(self, n_inputs, n_hidden, n_outputs, weights_hidden=None, bias_hidden=None,
+                 weights_output=None, bias_output=None):
         self.n_inputs = n_inputs
 
         self.hidden_layer = NeuronLayer(n_hidden, bias_hidden)
@@ -72,12 +78,12 @@ class NeuralNetwork:
     def update(self):
         for o in range(len(self.output_layer.neurons)):
             for w in range(len(self.output_layer.neurons[o].weights)):
-                self.output_layer.neurons[o].weights[w] -= self.change_weights_hidden_to_output[o][w] / 4.0
+                self.output_layer.neurons[o].weights[w] -= self.change_weights_hidden_to_output[o][w] / TRAINING_DATA
                 # self.output_layer.neurons[o].weights[w] -= self.change_weights_hidden_to_output[o][w] / 60000.0
 
         for h in range(len(self.hidden_layer.neurons)):
             for w in range(len(self.hidden_layer.neurons[h].weights)):
-                self.hidden_layer.neurons[h].weights[w] -= self.change_weights_inputs_to_hidden[h][w] / 4.0
+                self.hidden_layer.neurons[h].weights[w] -= self.change_weights_inputs_to_hidden[h][w] / TRAINING_DATA
                 # self.hidden_layer.neurons[h].weights[w] -= self.change_weights_inputs_to_hidden[h][w] / 60000.0
 
     def calculate_total_error(self, training_sets):
@@ -88,6 +94,13 @@ class NeuralNetwork:
             for o in range(len(training_outputs)):
                 total_error += self.output_layer.neurons[o].calculate_error(training_outputs[o])
         return total_error
+
+    def test(self, test_sets):
+        for t in range(len(test_sets)):
+            test_inputs, test_outputs = test_sets[t]
+            self.feed_forward(test_inputs)
+            for o in range(len(test_outputs)):
+                print(test_sets[t][1][o], self.output_layer.neurons[o].output)
 
 
 class NeuronLayer:
@@ -133,7 +146,7 @@ class Neuron:
         return total + self.bias
 
     def sigmoid(self, x):
-        return 1.0 / (1.0 + math.exp(-1.0 * x))
+        return 1.0 / (1.0 + np.exp(-1.0 * x))
 
     def calculate_delta(self, target_output):
         return self.calculate_error_output(target_output) * self.sigmoid_prime()
@@ -152,9 +165,9 @@ class Neuron:
 
 
 if __name__ == '__main__':
-    mn = MNIST.MNIST()
-    img, label = mn.load_training()
-    test_img, test_label = mn.load_testing()
+    # mn = MNIST.MNIST()
+    # img, label = mn.load_training()
+    # test_img, test_label = mn.load_testing()
 
     """
     nn = NeuralNetwork(2, 2, 2, [0.15, 0.2, 0.25, 0.3], 0.35,
@@ -174,9 +187,19 @@ if __name__ == '__main__':
     ]
 
     nn = NeuralNetwork(len(training_sets[0][0]), 5, len(training_sets[0][1]))
-    for i in range(10000):
-        training_inputs, training_outputs = random.choice(training_sets)
-        nn.train(training_inputs, training_outputs)
+    TRAINING_DATA = len(training_sets)
+    for i in range(EPOCH):
+        for j in range(TRAINING_DATA):
+            training_inputs, training_outputs = random.choice(training_sets)
+            nn.train(training_inputs, training_outputs)
         nn.update()
-        print(i, nn.calculate_total_error(training_sets))
+        error = nn.calculate_total_error(training_sets)
+        x1.append(i)
+        y1.append(error)
+        print(i+1, error)
 
+    nn.test(training_sets)
+    plt.plot(x1, y1)
+    plt.xlabel('epoch')
+    plt.ylabel('cost')
+    # plt.show()

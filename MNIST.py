@@ -47,6 +47,13 @@ class MNIST(object):
                                  'got {}'.format(magic))
 
             labels = array("B", file.read())
+            tmp = []
+            for i in range(len(labels)):
+                arr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                pos = labels[i]
+                arr[pos] = 1
+                tmp.append(arr)
+            labels = tmp
 
         with open(path_img, 'rb') as file:
             magic, size, rows, cols = struct.unpack(">IIII", file.read(16))
