@@ -5,7 +5,7 @@ import MNIST
 import time
 
 LEARNING_RATE = 0.5
-EPOCH = 50
+EPOCH = 1000
 TRAINING_DATA_SIZE = 0
 TEST_DATA_SIZE = 0
 x1 = []
@@ -13,6 +13,8 @@ y1 = []
 
 f_x1 = open("./x1.txt", 'w')
 f_y1 = open("./y1.txt", 'w')
+f_weight_input = open("./weight_input.txt", 'w')
+f_weight_output = open("./weight_output.txt", 'w')
 
 
 def sigmoid(x):
@@ -110,8 +112,8 @@ class MLP(object):
             for j in range(self.n_hidden):
                 self.weight_input[i][j] += self.change_weight_input[i][j] / TRAINING_DATA_SIZE
 
-        self.change_weight_input = np.zeros((len(self.act_input), len(self.act_hidden)))
         self.change_weight_output = np.zeros((len(self.act_hidden), len(self.act_output)))
+        self.change_weight_input = np.zeros((len(self.act_input), len(self.act_hidden)))
 
     def training(self, patterns, outputs):
         for i in range(EPOCH):
@@ -153,11 +155,25 @@ class MLP(object):
         acc = correct / TEST_DATA_SIZE * 100
         print ('Accuracy : ' + str(acc))
 
+        for j in range(self.n_hidden):
+            for k in range(self.n_output):
+                f_weight_output_data = "%f," % self.weight_output[j][k]
+                f_weight_output.write(f_weight_output_data)
+            f_weight_output_data = "\n"
+            f_weight_output.write(f_weight_output_data)
+
+        for i in range(self.n_input):
+            for j in range(self.n_hidden):
+                f_weight_input_data = "%f," % self.weight_input[i][j]
+                f_weight_input.write(f_weight_input_data)
+            f_weight_input_data = "\n"
+            f_weight_input.write(f_weight_input_data)
+
 if __name__ == '__main__':
     mn = MNIST.MNIST()
     img, label = mn.load_training()
     TRAINING_DATA_SIZE = len(img)
-    # TRAINING_DATA_SIZE = 1000
+    # TRAINING_DATA_SIZE = 10
     test_img, test_label = mn.load_testing()
     TEST_DATA_SIZE = len(test_img)
 
@@ -168,18 +184,19 @@ if __name__ == '__main__':
     print 'Training Running Time : %.02f' % (time.time() - total_start_time)
 
     NN.test(test_img, test_label)
-    x1_data = ""
-    for x in x1:
-        x1_data += "%d\n" % x
-    f_x1.write(x1_data)
 
-    y1_data = ""
+    for x in x1:
+        x1_data = "%d\n" % x
+        f_x1.write(x1_data)
+
     for y in y1:
-        y1_data += "%f\n" % y
-    f_y1.write(y1_data)
+        y1_data = "%f\n" % y
+        f_y1.write(y1_data)
 
     f_x1.close()
     f_y1.close()
+    f_weight_input.close()
+    f_weight_output.close()
 
     """
     plt.plot(x1, y1)
