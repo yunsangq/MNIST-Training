@@ -5,11 +5,14 @@ import MNIST
 import time
 
 LEARNING_RATE = 0.5
-EPOCH = 10
+EPOCH = 50
 TRAINING_DATA_SIZE = 0
 TEST_DATA_SIZE = 0
 x1 = []
 y1 = []
+
+f_x1 = open("./x1.txt", 'w')
+f_y1 = open("./y1.txt", 'w')
 
 
 def sigmoid(x):
@@ -81,14 +84,22 @@ class MLP(object):
 
         for j in range(self.n_hidden):
             for k in range(self.n_output):
+                # Batch
                 self.change_weight_output[j][k] += n * output_deltas[k] * self.act_hidden[j]
+                # Single-step
+                # self.weight_output[j][k] += n * output_deltas[k] * self.act_hidden[j]
 
         for i in range(self.n_input):
             for j in range(self.n_hidden):
+                # Batch
                 self.change_weight_input[i][j] += n * hidden_deltas[j] * self.act_input[i]
+                # Single-step
+                # self.weight_input[i][j] += n * hidden_deltas[j] * self.act_input[i]
 
-        error = 0.5 * (np.array(targets) - np.array(self.act_output)) ** 2
-        return np.linalg.norm(error)
+        error = np.array(targets) - np.array(self.act_output)
+        error = np.linalg.norm(error)
+        error = 0.5 * error ** 2
+        return error
 
     def update(self):
         for j in range(self.n_hidden):
@@ -98,6 +109,9 @@ class MLP(object):
         for i in range(self.n_input):
             for j in range(self.n_hidden):
                 self.weight_input[i][j] += self.change_weight_input[i][j] / TRAINING_DATA_SIZE
+
+        self.change_weight_input = np.zeros((len(self.act_input), len(self.act_hidden)))
+        self.change_weight_output = np.zeros((len(self.act_hidden), len(self.act_output)))
 
     def training(self, patterns, outputs):
         for i in range(EPOCH):
@@ -122,15 +136,17 @@ class MLP(object):
 
     def test(self, patterns, labels):
         error = 0.0
-        correct = 0
+        correct = 0.0
         for i in range(TEST_DATA_SIZE):
             output = self.feed_forward(patterns[i])
-            error += np.linalg.norm(0.5 * (np.array(labels[i]) - np.array(output)) ** 2)
+            tmp = np.array(labels[i]) - np.array(self.act_output)
+            tmp = np.linalg.norm(tmp)
+            error += 0.5 * tmp ** 2
             t = np.array(labels[i]).argmax()
             o = np.array(output).argmax()
             if t == o:
-                correct += 1
-            print(t, '->', o)
+                correct += 1.0
+            # print(t, '->', o)
             # print (patterns[i], output)
         error /= float(TEST_DATA_SIZE)
         print ('TEST error : %-.5f' % error)
@@ -141,6 +157,7 @@ if __name__ == '__main__':
     mn = MNIST.MNIST()
     img, label = mn.load_training()
     TRAINING_DATA_SIZE = len(img)
+    # TRAINING_DATA_SIZE = 1000
     test_img, test_label = mn.load_testing()
     TEST_DATA_SIZE = len(test_img)
 
@@ -151,6 +168,19 @@ if __name__ == '__main__':
     print 'Training Running Time : %.02f' % (time.time() - total_start_time)
 
     NN.test(test_img, test_label)
+    x1_data = ""
+    for x in x1:
+        x1_data += "%d\n" % x
+    f_x1.write(x1_data)
+
+    y1_data = ""
+    for y in y1:
+        y1_data += "%f\n" % y
+    f_y1.write(y1_data)
+
+    f_x1.close()
+    f_y1.close()
+
     """
     plt.plot(x1, y1)
     plt.xlabel('epoch')
