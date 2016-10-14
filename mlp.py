@@ -1,11 +1,11 @@
 import random
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import MNIST
 import time
 
 LEARNING_RATE = 0.5
-EPOCH = 50
+EPOCH = 10
 TRAINING_DATA_SIZE = 0
 TEST_DATA_SIZE = 0
 x1 = []
@@ -44,9 +44,14 @@ class MLP(object):
             for j in range(self.n_output):
                 self.weight_output[i][j] = random.uniform(-1.0, 1.0)
 
+    # RGB 0~255 (x - min) / (max - min)
+    def normalize_data(self, x):
+        return (x - 0.0) / (255.0 - 0.0)
+
     def feed_forward(self, inputs):
         for i in range(self.n_input - 1):
-            self.act_input[i] = inputs[i] / 256.0
+            self.act_input[i] = self.normalize_data(inputs[i])
+            # self.act_input[i] = inputs[i]
 
         for j in range(self.n_hidden):
             _sum = 0.0
@@ -107,7 +112,7 @@ class MLP(object):
                     tmp = error / float(j)
                     print ('time -> ' + str(j))
                     print ('error -> %-.5f' % tmp)
-            print 'Running Time : %.02f' % (time.time() - start_time)
+            print 'Epoch Running Time : %.02f' % (time.time() - start_time)
             error /= float(TRAINING_DATA_SIZE)
             self.update()
             x1.append(i)
@@ -118,7 +123,7 @@ class MLP(object):
     def test(self, patterns, labels):
         error = 0.0
         correct = 0
-        for i in range(len(patterns)):
+        for i in range(TEST_DATA_SIZE):
             output = self.feed_forward(patterns[i])
             error += np.linalg.norm(0.5 * (np.array(labels[i]) - np.array(output)) ** 2)
             t = np.array(labels[i]).argmax()
@@ -126,6 +131,7 @@ class MLP(object):
             if t == o:
                 correct += 1
             print(t, '->', o)
+            # print (patterns[i], output)
         error /= float(TEST_DATA_SIZE)
         print ('TEST error : %-.5f' % error)
         acc = correct / TEST_DATA_SIZE * 100
@@ -138,11 +144,46 @@ if __name__ == '__main__':
     test_img, test_label = mn.load_testing()
     TEST_DATA_SIZE = len(test_img)
 
-    NN = MLP(784, 10, 10)
+    NN = MLP(784, 15, 10)
 
+    total_start_time = time.time()
     NN.training(img, label)
+    print 'Training Running Time : %.02f' % (time.time() - total_start_time)
+
+    NN.test(test_img, test_label)
+    """
     plt.plot(x1, y1)
     plt.xlabel('epoch')
     plt.ylabel('cost')
     plt.show()
-    NN.test(test_img, test_label)
+    """
+"""
+   img = [
+       [0, 0],
+       [0, 1],
+       [1, 0],
+       [1, 1]
+   ]
+   label = [
+       [0],
+       [1],
+       [1],
+       [0]
+   ]
+   test_img = [
+       [0, 0],
+       [0, 1],
+       [1, 0],
+       [1, 1]
+   ]
+   test_label = [
+       [0],
+       [1],
+       [1],
+       [0]
+   ]
+   TRAINING_DATA_SIZE = len(img)
+   TEST_DATA_SIZE = len(test_img)
+
+   NN = MLP(2, 4, 1)
+   """
