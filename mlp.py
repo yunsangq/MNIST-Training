@@ -4,10 +4,12 @@ import numpy as np
 import MNIST
 import time
 
-LEARNING_RATE = 0.5
-EPOCH = 1000
+LEARNING_RATE = 3.0
+EPOCH = 50
+TOTAL_DATA_SIZE = 0
 TRAINING_DATA_SIZE = 0
 TEST_DATA_SIZE = 0
+MINI_BATCH_SIZE = 10
 x1 = []
 y1 = []
 
@@ -27,6 +29,7 @@ def sigmoid_prime(y):
 
 class MLP(object):
     def __init__(self, n_input, n_hidden, n_output):
+        # + 1 bias
         self.n_input = n_input + 1
         self.n_hidden = n_hidden
         self.n_output = n_output
@@ -43,11 +46,11 @@ class MLP(object):
 
         for i in range(self.n_input):
             for j in range(self.n_hidden):
-                self.weight_input[i][j] = random.uniform(-1.0, 1.0)
+                self.weight_input[i][j] = random.uniform(-0.05, 0.05)
 
         for i in range(self.n_hidden):
             for j in range(self.n_output):
-                self.weight_output[i][j] = random.uniform(-1.0, 1.0)
+                self.weight_output[i][j] = random.uniform(-0.05, 0.05)
 
     # RGB 0~255 (x - min) / (max - min)
     def normalize_data(self, x):
@@ -71,7 +74,7 @@ class MLP(object):
             self.act_output[k] = sigmoid(_sum)
         return self.act_output[:]
 
-    def back_propagate(self, targets, n):
+    def back_propagate(self, targets):
         output_deltas = [0.0] * self.n_output
         for k in range(self.n_output):
             error = targets[k] - self.act_output[k]
@@ -86,17 +89,17 @@ class MLP(object):
 
         for j in range(self.n_hidden):
             for k in range(self.n_output):
-                # Batch
-                self.change_weight_output[j][k] += n * output_deltas[k] * self.act_hidden[j]
+                # mini-Batch
+                self.change_weight_output[j][k] += output_deltas[k] * self.act_hidden[j]
                 # Single-step
-                # self.weight_output[j][k] += n * output_deltas[k] * self.act_hidden[j]
+                # self.weight_output[j][k] += LEARNING_RATE * output_deltas[k] * self.act_hidden[j]
 
         for i in range(self.n_input):
             for j in range(self.n_hidden):
-                # Batch
-                self.change_weight_input[i][j] += n * hidden_deltas[j] * self.act_input[i]
+                # mini-Batch
+                self.change_weight_input[i][j] += hidden_deltas[j] * self.act_input[i]
                 # Single-step
-                # self.weight_input[i][j] += n * hidden_deltas[j] * self.act_input[i]
+                # self.weight_input[i][j] += LEARNING_RATE * hidden_deltas[j] * self.act_input[i]
 
         error = np.array(targets) - np.array(self.act_output)
         error = np.linalg.norm(error)
@@ -106,11 +109,11 @@ class MLP(object):
     def update(self):
         for j in range(self.n_hidden):
             for k in range(self.n_output):
-                self.weight_output[j][k] += self.change_weight_output[j][k] / TRAINING_DATA_SIZE
+                self.weight_output[j][k] += LEARNING_RATE / MINI_BATCH_SIZE * (self.change_weight_output[j][k] / TRAINING_DATA_SIZE)
 
         for i in range(self.n_input):
             for j in range(self.n_hidden):
-                self.weight_input[i][j] += self.change_weight_input[i][j] / TRAINING_DATA_SIZE
+                self.weight_input[i][j] += LEARNING_RATE / MINI_BATCH_SIZE * (self.change_weight_input[i][j] / TRAINING_DATA_SIZE)
 
         self.change_weight_output = np.zeros((len(self.act_hidden), len(self.act_output)))
         self.change_weight_input = np.zeros((len(self.act_input), len(self.act_hidden)))
@@ -118,13 +121,19 @@ class MLP(object):
     def training(self, patterns, outputs):
         for i in range(EPOCH):
             error = 0.0
+            mini_batch_idx = np.random.randint(TOTAL_DATA_SIZE, size=TRAINING_DATA_SIZE)
+            m_patterns = []
+            m_outputs = []
+            for idx in mini_batch_idx:
+                m_patterns.append(patterns[idx])
+                m_outputs.append(outputs[idx])
             start_time = time.time()
             for j in range(TRAINING_DATA_SIZE):
-                inputs = patterns[j]
-                targets = outputs[j]
+                inputs = m_patterns[j]
+                targets = m_outputs[j]
                 self.feed_forward(inputs)
-                error += self.back_propagate(targets, LEARNING_RATE)
-                if j % 10000 == 0 and j != 0:
+                error += self.back_propagate(targets)
+                if j % 1000 == 0 and j != 0:
                     tmp = error / float(j)
                     print ('time -> ' + str(j))
                     print ('error -> %-.5f' % tmp)
@@ -172,12 +181,13 @@ class MLP(object):
 if __name__ == '__main__':
     mn = MNIST.MNIST()
     img, label = mn.load_training()
-    TRAINING_DATA_SIZE = len(img)
+    TOTAL_DATA_SIZE = len(img)
+    TRAINING_DATA_SIZE =  TOTAL_DATA_SIZE / MINI_BATCH_SIZE
     # TRAINING_DATA_SIZE = 10
     test_img, test_label = mn.load_testing()
     TEST_DATA_SIZE = len(test_img)
 
-    NN = MLP(784, 15, 10)
+    NN = MLP(784, 60, 10)
 
     total_start_time = time.time()
     NN.training(img, label)
@@ -197,13 +207,12 @@ if __name__ == '__main__':
     f_y1.close()
     f_weight_input.close()
     f_weight_output.close()
-
-    """
+"""
     plt.plot(x1, y1)
     plt.xlabel('epoch')
     plt.ylabel('cost')
     plt.show()
-    """
+"""
 """
    img = [
        [0, 0],
