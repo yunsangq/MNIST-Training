@@ -1,0 +1,20 @@
+Running time(sec)
+- sigmoid
+SGD : 998.19
+momentum :
+NAG :
+Adagrad :
+Adadelta :
+Rmsprop :
+cross-entropy :
+softmax :
+
+- ReLU
+SGD :
+momentum :
+NAG :
+Adagrad :
+Adadelta :
+Rmsprop :
+cross-entropy :
+softmax :

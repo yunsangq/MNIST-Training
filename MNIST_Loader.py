@@ -23,12 +23,6 @@ class DataLoader:
 
         return train_data, test_data
 
-    # Vectorise Int into (10, 1) vector representation, with 1.0 at jth positon and 0.0 elsewhere
-    def VectorResult(self, j):
-        vect = np.zeros((10, 1))
-        vect[j] = 1.0
-        return vect
-
     def train_load(self, path_img, path_lbl):
         with open(path_lbl, 'rb') as file:
             magic, size = struct.unpack(">II", file.read(8))
@@ -53,7 +47,7 @@ class DataLoader:
         for i in range(size):
             images[i][:] = image_data[i * rows * cols:(i + 1) * rows * cols]
 
-        print 'TRAIN Data Normalization'
+        print 'TRAIN Data Normalization.....'
         for i in xrange(size):
             for j in xrange(784):
                 images[i][j] /= 256.0
@@ -88,7 +82,7 @@ class DataLoader:
         for i in range(size):
             images[i][:] = image_data[i * rows * cols:(i + 1) * rows * cols]
 
-        print 'TEST Data Normalization'
+        print 'TEST Data Normalization.....'
         for i in xrange(size):
             for j in xrange(784):
                 images[i][j] /= 256.0
@@ -98,4 +92,8 @@ class DataLoader:
         data = zip(result_images, labels)
         return data
 
+    def VectorResult(self, j):
+        vect = np.zeros((10, 1))
+        vect[j] = 1.0
+        return vect
 
