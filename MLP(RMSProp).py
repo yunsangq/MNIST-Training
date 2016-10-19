@@ -88,8 +88,8 @@ class MLP:
         x += -lr*dx / (sqrt(cache)+eps)
         """
 
-        self.cache_w = [decay_rate * cw + (1-decay_rate) * bw**2 for cw, bw in zip(self.cache_w, batch_w)]
-        self.cache_b = [decay_rate * cb + (1-decay_rate) * bb**2 for cb, bb in zip(self.cache_b, batch_b)]
+        self.cache_w = [decay_rate * cw + (1-decay_rate) * (bw**2) for cw, bw in zip(self.cache_w, batch_w)]
+        self.cache_b = [decay_rate * cb + (1-decay_rate) * (bb**2) for cb, bb in zip(self.cache_b, batch_b)]
 
         self.weights = [w - (learn_rate / len(mini_batch)) * bw / (np.sqrt(cw) + np.finfo(np.float32).eps)
                         for w, bw, cw in zip(self.weights, batch_w, self.cache_w)]
@@ -146,6 +146,12 @@ class MLP:
     def dsigmoid(self, z):
         return z * (1.0 - z)
 
+    def ReLU(self, x):
+        return x * (x > 0)
+
+    def dReLU(self, x):
+        return 1. * (x > 0)
+
     def _error(self, output_activations, y):
         return output_activations - y
 
@@ -181,7 +187,7 @@ class MLP:
 if __name__ == '__main__':
     NN = [784, 60, 10]
     LEARNING_RATE = 0.5
-    EPOCHS = 50
+    EPOCHS = 150
     MINI_BATCH_SIZE = 10
     TRAIN_DATA = None
     VALID_DATA = None

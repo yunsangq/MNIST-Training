@@ -134,6 +134,12 @@ class MLP:
     def dsigmoid(self, z):
         return z * (1.0 - z)
 
+    def ReLU(self, x):
+        return x * (x > 0)
+
+    def dReLU(self, x):
+        return 1. * (x > 0)
+
     def _error(self, output_activations, y):
         return output_activations - y
 

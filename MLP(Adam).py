@@ -42,10 +42,16 @@ class MLP:
         self.valid_acc = []
         self.train_cost = []
         self.valid_cost = []
-        self.m_b = [np.zeros(b.shape) for b in self.biases]
-        self.m_w = [np.zeros(w.shape) for w in self.weights]
-        self.v_b = [np.zeros(b.shape) for b in self.biases]
-        self.v_w = [np.zeros(w.shape) for w in self.weights]
+
+        self.w_m = [np.zeros(w.shape) for w in self.weights]
+        self.w_v = [np.zeros(w.shape) for w in self.weights]
+        self.w_mb = [np.zeros(w.shape) for w in self.weights]
+        self.w_vb = [np.zeros(w.shape) for w in self.weights]
+
+        self.b_m = [np.zeros(b.shape) for b in self.biases]
+        self.b_v = [np.zeros(b.shape) for b in self.biases]
+        self.b_mb = [np.zeros(b.shape) for b in self.biases]
+        self.b_vb = [np.zeros(b.shape) for b in self.biases]
 
     def feed_forward(self, inputs):
         for b, w in zip(self.biases, self.weights):
@@ -76,7 +82,7 @@ class MLP:
             delta_w[-i] = np.dot(delta, activations[-i-1].transpose())
         return delta_b, delta_w
 
-    def update(self, mini_batch, learn_rate, beta1, beta2):
+    def update(self, mini_batch, learn_rate, beta1, beta2, t):
         batch_b = [np.zeros(b.shape) for b in self.biases]
         batch_w = [np.zeros(w.shape) for w in self.weights]
 
@@ -90,18 +96,26 @@ class MLP:
         beta2 = 0.999
         m = beta1*m + (1-beta1)*dx
         v = beta2*v + (1-beta2)*dx**2
-        x += -lr*m / (sqrt(v)+eps)
+
+        mb = m / (1-beta_1**t)
+        vb = v / (1-beta_2**t)
+        x += - learning_rate * mb / sqrt(vb) + 1e-7)
         """
-        self.m_w = [beta1*mw + (1-beta1)*bw for mw, bw in zip(self.m_w, batch_w)]
-        self.m_b = [beta1*mb + (1-beta1)*bb for mb, bb in zip(self.m_b, batch_b)]
 
-        self.v_w = [beta2*vw + (1-beta2)*bw**2 for vw, bw in zip(self.v_w, batch_w)]
-        self.v_b = [beta2*vb + (1-beta2)*bb**2 for vb, bb in zip(self.v_b, batch_b)]
+        self.w_m = [beta1*wm + (1-beta1)*bw for wm, bw in zip(self.w_m, batch_w)]
+        self.w_v = [beta2 * wv + (1 - beta2) * (bw ** 2) for wv, bw in zip(self.w_v, batch_w)]
+        self.w_mb = [wm / (1 - beta1 ** t) for wm in self.w_m]
+        self.w_vb = [wv / (1 - beta2 ** t) for wv in self.w_v]
 
-        self.weights = [w - (learn_rate / len(mini_batch)) * mw / (np.sqrt(vw)+np.finfo(np.float32).eps)
-                        for w, mw, vw in zip(self.weights, self.m_w, self.v_w)]
-        self.biases = [b - (learn_rate / len(mini_batch)) * mb / (np.sqrt(vb)+np.finfo(np.float32).eps)
-                       for b, mb, vb in zip(self.biases, self.m_b, self.v_b)]
+        self.b_m = [beta1*bm + (1-beta1)*bb for bm, bb in zip(self.b_m, batch_b)]
+        self.b_v = [beta2*bv + (1-beta2)*(bb**2) for bv, bb in zip(self.b_v, batch_b)]
+        self.b_mb = [bm / (1-beta1**t) for bm in self.b_m]
+        self.b_vb = [bv / (1-beta2**t) for bv in self.b_v]
+
+        self.weights = [w - (learn_rate / len(mini_batch)) * wmb / (np.sqrt(wvb)+np.finfo(np.float32).eps)
+                        for w, wmb, wvb in zip(self.weights, self.w_mb, self.w_vb)]
+        self.biases = [b - (learn_rate / len(mini_batch)) * bmb / (np.sqrt(bvb)+np.finfo(np.float32).eps)
+                       for b, bmb, bvb in zip(self.biases, self.b_mb, self.b_vb)]
 
     def stochastic(self, train_data, epochs, mini_batch_size, learning_rate, valid_data, test_data, beta1, beta2):
         n_test = len(test_data)
@@ -111,9 +125,10 @@ class MLP:
             start_time = time.time()
             random.shuffle(train_data)
             mini_batches = [train_data[k:k+mini_batch_size] for k in xrange(0, n, mini_batch_size)]
-
+            t = 1.0
             for batch in mini_batches:
-                self.update(batch, learning_rate, beta1, beta2)
+                self.update(batch, learning_rate, beta1, beta2, t)
+                t += 1.0
 
             self.train_cost.append(self.get_train_cost(train_data))
             self.valid_cost.append(self.get_cost(valid_data))
@@ -122,8 +137,8 @@ class MLP:
             print 'Epoch : {0}'.format(i)
             """
             print 'Cost : {0:.2f}'.format(error)
-            print 'Accuracy : {0:.2f}%'.format(accuracy)
             """
+            print 'Accuracy : {0:.2f}%'.format((float(self.test(valid_data)) / float(n_valid)) * 100)
             print 'Epoch Running Time : {0:.2f}'.format(time.time() - start_time)
 
         error = self.get_cost(test_data)
@@ -152,6 +167,12 @@ class MLP:
 
     def dsigmoid(self, z):
         return z * (1.0 - z)
+
+    def ReLU(self, x):
+        return x * (x > 0)
+
+    def dReLU(self, x):
+        return 1. * (x > 0)
 
     def _error(self, output_activations, y):
         return output_activations - y
@@ -188,7 +209,7 @@ class MLP:
 if __name__ == '__main__':
     NN = [784, 60, 10]
     LEARNING_RATE = 0.5
-    EPOCHS = 50
+    EPOCHS = 300
     MINI_BATCH_SIZE = 10
     TRAIN_DATA = None
     VALID_DATA = None

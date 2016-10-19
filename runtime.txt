@@ -9,13 +9,16 @@ Test Data Accuracy : 95.56%
 Test Data Accuracy : 95.71%
 
 * Adagrad *
-Test Data Accuracy : 95.03%
+Test Data Accuracy : 95.11%
 
 * Adadelta *
-
+Test Data Accuracy : 95.86%
 
 * Rmsprop *
+Test Data Accuracy : 95.82%
 
+* Adam *
+Test Data Accuracy : 66.63%
 
 * cross-entropy *
 
@@ -23,11 +26,20 @@ Test Data Accuracy : 95.03%
 * softmax *
 
 - ReLU
-SGD :
-momentum :
-NAG :
-Adagrad :
-Adadelta :
-Rmsprop :
-cross-entropy :
-softmax :
+* SGD *
+
+* momentum *
+
+* NAG *
+
+* Adagrad *
+
+* Adadelta *
+
+* Rmsprop *
+
+* Adam *
+
+* cross-entropy *
+
+* softmax *
