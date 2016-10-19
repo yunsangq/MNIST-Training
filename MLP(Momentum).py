@@ -14,6 +14,7 @@ def err_disp(epochs, hist):
     ax.set_ylabel('Cost')
     plt.show()
 
+
 def acc_disp(epochs, hist):
     fig = plt.figure(facecolor='white')
     fig.canvas.set_window_title('Accuracy per Epoch')
@@ -23,14 +24,15 @@ def acc_disp(epochs, hist):
     ax.set_ylabel('Accuracy')
     plt.show()
 
+
 class MLP:
     def __init__(self):
         self.biases = [np.random.randn(y, 1) for y in NN[1:]]
         self.weights = [np.random.randn(y, x) for x, y in zip(NN[:-1], NN[1:])]
         self.epoch_accuracy = []
         self.cost = []
-        self.before_w = []
-
+        self.before_b = [np.zeros(b.shape) for b in self.biases]
+        self.before_w = [np.zeros(w.shape) for w in self.weights]
 
     def feed_forward(self, inputs):
         for b, w in zip(self.biases, self.weights):
@@ -63,7 +65,7 @@ class MLP:
             delta_w[-i] = np.dot(delta, activations[-i-1].transpose())
         return delta_b, delta_w
 
-    def update(self, mini_batch, learn_rate, momentum, momentum_idx):
+    def update(self, mini_batch, learn_rate, momentum):
         batch_b = [np.zeros(b.shape) for b in self.biases]
         batch_w = [np.zeros(w.shape) for w in self.weights]
 
@@ -72,35 +74,47 @@ class MLP:
             batch_b = [b + delta_b for b, delta_b in zip(batch_b, delta_batch_b)]
             batch_w = [w + delta_w for w, delta_w in zip(batch_w, delta_batch_w)]
 
-        before = [w - (learn_rate / len(mini_batch)) * bw for w, bw in zip(self.weights, batch_w)]
-        self.before_w.append(before)
-        if momentum_idx == 0:
-            self.weights = [w - (learn_rate / len(mini_batch)) * bw for w, bw in zip(self.weights, batch_w)]
-        else:
-            self.weights = [w - (learn_rate / len(mini_batch)) * bw + momentum * bew
-                            for w, bw, bew in zip(self.weights, batch_w, self.before_w[momentum_idx - 1])]
-        self.biases = [b - (learn_rate / len(mini_batch)) * bb for b, bb in zip(self.biases, batch_b)]
+        """
+        v = -lr*dx + mu*v
+        x += v
+        """
 
-    def stochastic(self, train_data, epochs, mini_batch_size, learning_rate, test_data, momentum):
+        self.weights = [w - (learn_rate / len(mini_batch)) * bw + momentum * bew
+                        for w, bw, bew in zip(self.weights, batch_w, self.before_w)]
+        self.before_w = [-(learn_rate / len(mini_batch)) * bw + momentum * bew
+                         for bw, bew in zip(batch_w, self.before_w)]
+
+        self.biases = [b - (learn_rate / len(mini_batch)) * bb + momentum * beb
+                       for b, bb, beb in zip(self.biases, batch_b, self.before_b)]
+        self.before_b = [-(learn_rate / len(mini_batch)) * bb + momentum * beb
+                         for bb, beb in zip(batch_b, self.before_b)]
+
+    def stochastic(self, train_data, epochs, mini_batch_size, learning_rate, valid_data, test_data, momentum):
         n_test = len(test_data)
+        n_valid = len(valid_data)
         n = len(train_data)
         for i in xrange(epochs):
             start_time = time.time()
             random.shuffle(train_data)
             mini_batches = [train_data[k:k+mini_batch_size] for k in xrange(0, n, mini_batch_size)]
-            momentum_idx = 0
-            for batch in mini_batches:
-                self.update(batch, learning_rate, momentum, momentum_idx)
-                momentum_idx += 1
 
-            error = self.get_cost(test_data)
+            for batch in mini_batches:
+                self.update(batch, learning_rate, momentum)
+
+            error = self.get_cost(valid_data)
             self.cost.append(error)
-            accuracy = (float(self.test(test_data)) / float(n_test)) * 100
+            accuracy = (float(self.test(valid_data)) / float(n_valid)) * 100
             self.epoch_accuracy.append(accuracy)
             print 'Epoch : {0}'.format(i)
             print 'Cost : {0:.2f}'.format(error)
             print 'Accuracy : {0:.2f}%'.format(accuracy)
             print 'Epoch Running Time : %.02f' % (time.time() - start_time)
+
+        error = self.get_cost(test_data)
+        accuracy = (float(self.test(test_data)) / float(n_test)) * 100
+        print 'Test Data Cost : {0:.2f}'.format(error)
+        print 'Test Data Accuracy : {0:.2f}%'.format(accuracy)
+
         return self.epoch_accuracy, self.cost
 
     def sigmoid(self, z):
@@ -119,12 +133,12 @@ class MLP:
     def get_cost(self, test_data):
         results = 0.0
         for (x, y) in test_data:
-            result_labels = self.VectorResult(y)
+            result_labels = self.vectorresult(y)
             results += 0.5 * np.linalg.norm(self._error(self.feed_forward(x), result_labels)) ** 2
         results /= float(len(test_data))
         return results
 
-    def VectorResult(self, j):
+    def vectorresult(self, j):
         vect = np.zeros((10, 1))
         vect[j] = 1.0
         return vect
@@ -132,16 +146,17 @@ class MLP:
 
 if __name__ == '__main__':
     NN = [784, 60, 10]
-    LEARNING_RATE = 3.0
-    EPOCHS = 50
+    LEARNING_RATE = 0.5
+    EPOCHS = 100
     MINI_BATCH_SIZE = 10
     TRAIN_DATA = None
+    VALID_DATA = None
     TEST_DATA = None
-    MOMENTUM = 0.9
+    MOMENTUM = 0.5
 
     print 'MNIST Data Loading...'
     data_loader = MNIST_Loader.DataLoader()
-    TRAIN_DATA, TEST_DATA = data_loader.LoadData()
+    TRAIN_DATA, VALID_DATA, TEST_DATA = data_loader.loaddata()
     print 'MNIST Data Loaded!!!!'
 
     mlp = MLP()
@@ -151,6 +166,7 @@ if __name__ == '__main__':
         EPOCHS,
         MINI_BATCH_SIZE,
         LEARNING_RATE,
+        VALID_DATA,
         TEST_DATA,
         MOMENTUM
     )

@@ -14,6 +14,7 @@ def err_disp(epochs, hist):
     ax.set_ylabel('Cost')
     plt.show()
 
+
 def acc_disp(epochs, hist):
     fig = plt.figure(facecolor='white')
     fig.canvas.set_window_title('Accuracy per Epoch')
@@ -22,6 +23,7 @@ def acc_disp(epochs, hist):
     ax.set_xlabel('Epochs')
     ax.set_ylabel('Accuracy')
     plt.show()
+
 
 class MLP:
     def __init__(self):
@@ -71,8 +73,9 @@ class MLP:
         self.weights = [w - (learn_rate / len(mini_batch)) * bw for w, bw in zip(self.weights, batch_w)]
         self.biases = [b - (learn_rate / len(mini_batch)) * bb for b, bb in zip(self.biases, batch_b)]
 
-    def stochastic(self, train_data, epochs, mini_batch_size, learning_rate, test_data):
+    def stochastic(self, train_data, epochs, mini_batch_size, learning_rate, valid_data, test_data):
         n_test = len(test_data)
+        n_valid = len(valid_data)
         n = len(train_data)
         for i in xrange(epochs):
             start_time = time.time()
@@ -82,14 +85,20 @@ class MLP:
             for batch in mini_batches:
                 self.update(batch, learning_rate)
 
-            error = self.get_cost(test_data)
+            error = self.get_cost(valid_data)
             self.cost.append(error)
-            accuracy = (float(self.test(test_data)) / float(n_test)) * 100
+            accuracy = (float(self.test(valid_data)) / float(n_valid)) * 100
             self.epoch_accuracy.append(accuracy)
             print 'Epoch : {0}'.format(i)
             print 'Cost : {0:.2f}'.format(error)
             print 'Accuracy : {0:.2f}%'.format(accuracy)
-            print 'Epoch Running Time : %.02f' % (time.time() - start_time)
+            print 'Epoch Running Time : {0:.2f}'.format(time.time() - start_time)
+
+        error = self.get_cost(test_data)
+        accuracy = (float(self.test(test_data)) / float(n_test)) * 100
+        print 'Test Data Cost : {0:.2f}'.format(error)
+        print 'Test Data Accuracy : {0:.2f}%'.format(accuracy)
+
         return self.epoch_accuracy, self.cost
 
     def sigmoid(self, z):
@@ -108,12 +117,12 @@ class MLP:
     def get_cost(self, test_data):
         results = 0.0
         for (x, y) in test_data:
-            result_labels = self.VectorResult(y)
+            result_labels = self.vectorresult(y)
             results += 0.5 * np.linalg.norm(self._error(self.feed_forward(x), result_labels)) ** 2
         results /= float(len(test_data))
         return results
 
-    def VectorResult(self, j):
+    def vectorresult(self, j):
         vect = np.zeros((10, 1))
         vect[j] = 1.0
         return vect
@@ -121,15 +130,16 @@ class MLP:
 
 if __name__ == '__main__':
     NN = [784, 60, 10]
-    LEARNING_RATE = 3.0
-    EPOCHS = 50
+    LEARNING_RATE = 0.5
+    EPOCHS = 100
     MINI_BATCH_SIZE = 10
     TRAIN_DATA = None
+    VALID_DATA = None
     TEST_DATA = None
 
     print 'MNIST Data Loading...'
     data_loader = MNIST_Loader.DataLoader()
-    TRAIN_DATA, TEST_DATA = data_loader.LoadData()
+    TRAIN_DATA, VALID_DATA, TEST_DATA = data_loader.loaddata()
     print 'MNIST Data Loaded!!!!'
 
     mlp = MLP()
@@ -139,10 +149,11 @@ if __name__ == '__main__':
         EPOCHS,
         MINI_BATCH_SIZE,
         LEARNING_RATE,
+        VALID_DATA,
         TEST_DATA
     )
     print 'Training Finished'
-    print 'Training Running Time : %.02f' % (time.time() - total_start_time)
+    print 'Training Running Time : {0:.2f}'.format(time.time() - total_start_time)
     acc_disp(EPOCHS, epoch_accuracy)
     err_disp(EPOCHS, epoch_cost)
 

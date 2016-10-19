@@ -1,13 +1,32 @@
-Running time(sec)
 - sigmoid
-SGD : 998.19
-momentum :
-NAG :
-Adagrad :
-Adadelta :
-Rmsprop :
-cross-entropy :
-softmax :
+* SGD *
+Test Data Cost : 0.04
+Test Data Accuracy : 95.47%
+Training Running Time : 1330.68
+
+* momentum *
+Test Data Cost : 0.04
+Test Data Accuracy : 95.39%
+Training Running Time : 1419.39
+
+* NAG *
+Test Data Cost : 0.04
+Test Data Accuracy : 95.54%
+Training Running Time : 1541.09
+
+* Adagrad *
+
+
+* Adadelta *
+
+
+* Rmsprop *
+
+
+* cross-entropy *
+
+
+* softmax *
 
 - ReLU
 SGD :
