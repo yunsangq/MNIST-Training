@@ -1,8 +1,8 @@
 - sigmoid
 * SGD *
 Test Data Cost : 0.04
-Test Data Accuracy : 95.47%
-Training Running Time : 1330.68
+Test Data Accuracy : 95.19%
+Training Running Time : 880.82
 
 * momentum *
 Test Data Cost : 0.04
@@ -15,7 +15,9 @@ Test Data Accuracy : 95.54%
 Training Running Time : 1541.09
 
 * Adagrad *
-
+Test Data Cost : 0.04
+Test Data Accuracy : 95.36%
+Training Running Time : 1518.00
 
 * Adadelta *
 

@@ -3,25 +3,34 @@ import numpy as np
 import MNIST_Loader
 import matplotlib.pyplot as plt
 import time
+import json
 
 
-def err_disp(epochs, hist):
+def err_disp(epochs, train, valid):
     fig = plt.figure(facecolor='white')
     fig.canvas.set_window_title('Cost per Epoch')
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(range(epochs), hist, color='#1F77B4')
+    ax.plot(range(epochs), train, color='#1F77B4', label='Training')
+    ax.plot(range(epochs), valid, color='#b41f1f', label='Validation')
     ax.set_xlabel('Epochs')
     ax.set_ylabel('Cost')
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.show()
 
 
-def acc_disp(epochs, hist):
+def acc_disp(epochs, train, valid):
     fig = plt.figure(facecolor='white')
     fig.canvas.set_window_title('Accuracy per Epoch')
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(range(epochs), hist, color='#1F77B4')
+    ax.plot(range(epochs), train, color='#1F77B4', label='Training')
+    ax.plot(range(epochs), valid, color='#b41f1f', label='Validation')
     ax.set_xlabel('Epochs')
     ax.set_ylabel('Accuracy')
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.show()
 
 
@@ -29,8 +38,10 @@ class MLP:
     def __init__(self):
         self.biases = [np.random.randn(y, 1) for y in NN[1:]]
         self.weights = [np.random.randn(y, x) for x, y in zip(NN[:-1], NN[1:])]
-        self.epoch_accuracy = []
-        self.cost = []
+        self.train_acc = []
+        self.valid_acc = []
+        self.train_cost = []
+        self.valid_cost = []
         self.before_b = [np.zeros(b.shape) for b in self.biases]
         self.before_w = [np.zeros(w.shape) for w in self.weights]
 
@@ -78,16 +89,15 @@ class MLP:
         v = -lr*dx + mu*v
         x += v
         """
-
-        self.weights = [w - (learn_rate / len(mini_batch)) * bw + momentum * bew
-                        for w, bw, bew in zip(self.weights, batch_w, self.before_w)]
         self.before_w = [-(learn_rate / len(mini_batch)) * bw + momentum * bew
                          for bw, bew in zip(batch_w, self.before_w)]
+        self.weights = [w - (learn_rate / len(mini_batch)) * bw + momentum * bew
+                        for w, bw, bew in zip(self.weights, batch_w, self.before_w)]
 
-        self.biases = [b - (learn_rate / len(mini_batch)) * bb + momentum * beb
-                       for b, bb, beb in zip(self.biases, batch_b, self.before_b)]
         self.before_b = [-(learn_rate / len(mini_batch)) * bb + momentum * beb
                          for bb, beb in zip(batch_b, self.before_b)]
+        self.biases = [b - (learn_rate / len(mini_batch)) * bb + momentum * beb
+                       for b, bb, beb in zip(self.biases, batch_b, self.before_b)]
 
     def stochastic(self, train_data, epochs, mini_batch_size, learning_rate, valid_data, test_data, momentum):
         n_test = len(test_data)
@@ -101,13 +111,15 @@ class MLP:
             for batch in mini_batches:
                 self.update(batch, learning_rate, momentum)
 
-            error = self.get_cost(valid_data)
-            self.cost.append(error)
-            accuracy = (float(self.test(valid_data)) / float(n_valid)) * 100
-            self.epoch_accuracy.append(accuracy)
+            self.train_cost.append(self.get_train_cost(train_data))
+            self.valid_cost.append(self.get_cost(valid_data))
+            self.train_acc.append((float(self.train_test(train_data)) / float(n)) * 100)
+            self.valid_acc.append((float(self.test(valid_data)) / float(n_valid)) * 100)
             print 'Epoch : {0}'.format(i)
+            """
             print 'Cost : {0:.2f}'.format(error)
             print 'Accuracy : {0:.2f}%'.format(accuracy)
+            """
             print 'Epoch Running Time : %.02f' % (time.time() - start_time)
 
         error = self.get_cost(test_data)
@@ -115,7 +127,21 @@ class MLP:
         print 'Test Data Cost : {0:.2f}'.format(error)
         print 'Test Data Accuracy : {0:.2f}%'.format(accuracy)
 
-        return self.epoch_accuracy, self.cost
+        self.save("Momentum.json", accuracy)
+
+        return self.train_acc, self.valid_acc, self.train_cost, self.valid_cost
+
+    def save(self, filename, accuracy):
+        data = {"train_cost": self.train_cost,
+                "valid_cost": self.valid_cost,
+                "train_accuracy": self.train_acc,
+                "valid_accuracy": self.valid_acc,
+                "test_accuracy": accuracy,
+                "weights": [w.tolist() for w in self.weights],
+                "biases": [b.tolist() for b in self.biases]}
+        f = open(filename, "w")
+        json.dump(data, f)
+        f.close()
 
     def sigmoid(self, z):
         return 1.0 / (1.0 + np.exp(-z))
@@ -126,9 +152,20 @@ class MLP:
     def _error(self, output_activations, y):
         return output_activations - y
 
+    def train_test(self, test_data):
+        results = [(np.argmax(self.feed_forward(x)), np.argmax(y)) for (x, y) in test_data]
+        return sum(int(x == y) for (x, y) in results)
+
     def test(self, test_data):
         results = [(np.argmax(self.feed_forward(x)), y) for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in results)
+
+    def get_train_cost(self, test_data):
+        results = 0.0
+        for (x, y) in test_data:
+            results += 0.5 * np.linalg.norm(self._error(self.feed_forward(x), y)) ** 2
+        results /= float(len(test_data))
+        return results
 
     def get_cost(self, test_data):
         results = 0.0
@@ -147,7 +184,7 @@ class MLP:
 if __name__ == '__main__':
     NN = [784, 60, 10]
     LEARNING_RATE = 0.5
-    EPOCHS = 100
+    EPOCHS = 50
     MINI_BATCH_SIZE = 10
     TRAIN_DATA = None
     VALID_DATA = None
@@ -161,7 +198,7 @@ if __name__ == '__main__':
 
     mlp = MLP()
     total_start_time = time.time()
-    epoch_accuracy, epoch_cost = mlp.stochastic(
+    train_acc, valid_acc, train_cost, valid_cost = mlp.stochastic(
         TRAIN_DATA,
         EPOCHS,
         MINI_BATCH_SIZE,
@@ -172,7 +209,8 @@ if __name__ == '__main__':
     )
     print 'Training Finished'
     print 'Training Running Time : %.02f' % (time.time() - total_start_time)
-    acc_disp(EPOCHS, epoch_accuracy)
-    err_disp(EPOCHS, epoch_cost)
+    acc_disp(EPOCHS, train_acc, valid_acc)
+    err_disp(EPOCHS, train_cost, valid_cost)
+
 
 

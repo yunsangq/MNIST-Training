@@ -42,8 +42,10 @@ class MLP:
         self.valid_acc = []
         self.train_cost = []
         self.valid_cost = []
-        self.cache_b = [np.zeros(b.shape) for b in self.biases]
-        self.cache_w = [np.zeros(w.shape) for w in self.weights]
+        self.m_b = [np.zeros(b.shape) for b in self.biases]
+        self.m_w = [np.zeros(w.shape) for w in self.weights]
+        self.v_b = [np.zeros(b.shape) for b in self.biases]
+        self.v_w = [np.zeros(w.shape) for w in self.weights]
 
     def feed_forward(self, inputs):
         for b, w in zip(self.biases, self.weights):
@@ -74,7 +76,7 @@ class MLP:
             delta_w[-i] = np.dot(delta, activations[-i-1].transpose())
         return delta_b, delta_w
 
-    def update(self, mini_batch, learn_rate, decay_rate):
+    def update(self, mini_batch, learn_rate, beta1, beta2):
         batch_b = [np.zeros(b.shape) for b in self.biases]
         batch_w = [np.zeros(w.shape) for w in self.weights]
 
@@ -84,19 +86,24 @@ class MLP:
             batch_w = [w + delta_w for w, delta_w in zip(batch_w, delta_batch_w)]
 
         """
-        cache = dr*cache + (1-dr)*dx**2
-        x += -lr*dx / (sqrt(cache)+eps)
+        beta1 = 0.9
+        beta2 = 0.999
+        m = beta1*m + (1-beta1)*dx
+        v = beta2*v + (1-beta2)*dx**2
+        x += -lr*m / (sqrt(v)+eps)
         """
+        self.m_w = [beta1*mw + (1-beta1)*bw for mw, bw in zip(self.m_w, batch_w)]
+        self.m_b = [beta1*mb + (1-beta1)*bb for mb, bb in zip(self.m_b, batch_b)]
 
-        self.cache_w = [decay_rate * cw + (1-decay_rate) * bw**2 for cw, bw in zip(self.cache_w, batch_w)]
-        self.cache_b = [decay_rate * cb + (1-decay_rate) * bb**2 for cb, bb in zip(self.cache_b, batch_b)]
+        self.v_w = [beta2*vw + (1-beta2)*bw**2 for vw, bw in zip(self.v_w, batch_w)]
+        self.v_b = [beta2*vb + (1-beta2)*bb**2 for vb, bb in zip(self.v_b, batch_b)]
 
-        self.weights = [w - (learn_rate / len(mini_batch)) * bw / (np.sqrt(cw) + np.finfo(np.float32).eps)
-                        for w, bw, cw in zip(self.weights, batch_w, self.cache_w)]
-        self.biases = [b - (learn_rate / len(mini_batch)) * bb / (np.sqrt(cb) + np.finfo(np.float32).eps)
-                       for b, bb, cb in zip(self.biases, batch_b, self.cache_b)]
+        self.weights = [w - (learn_rate / len(mini_batch)) * mw / (np.sqrt(vw)+np.finfo(np.float32).eps)
+                        for w, mw, vw in zip(self.weights, self.m_w, self.v_w)]
+        self.biases = [b - (learn_rate / len(mini_batch)) * mb / (np.sqrt(vb)+np.finfo(np.float32).eps)
+                       for b, mb, vb in zip(self.biases, self.m_b, self.v_b)]
 
-    def stochastic(self, train_data, epochs, mini_batch_size, learning_rate, valid_data, test_data, decay_rate):
+    def stochastic(self, train_data, epochs, mini_batch_size, learning_rate, valid_data, test_data, beta1, beta2):
         n_test = len(test_data)
         n_valid = len(valid_data)
         n = len(train_data)
@@ -106,7 +113,7 @@ class MLP:
             mini_batches = [train_data[k:k+mini_batch_size] for k in xrange(0, n, mini_batch_size)]
 
             for batch in mini_batches:
-                self.update(batch, learning_rate, decay_rate)
+                self.update(batch, learning_rate, beta1, beta2)
 
             self.train_cost.append(self.get_train_cost(train_data))
             self.valid_cost.append(self.get_cost(valid_data))
@@ -124,7 +131,7 @@ class MLP:
         print 'Test Data Cost : {0:.2f}'.format(error)
         print 'Test Data Accuracy : {0:.2f}%'.format(accuracy)
 
-        self.save("Adadelta.json", accuracy)
+        self.save("Adam.json", accuracy)
 
         return self.train_acc, self.valid_acc, self.train_cost, self.valid_cost
 
@@ -186,7 +193,8 @@ if __name__ == '__main__':
     TRAIN_DATA = None
     VALID_DATA = None
     TEST_DATA = None
-    DECAY_RATE = 0.5
+    BETA1 = 0.9
+    BETA2 = 0.999
 
     print 'MNIST Data Loading...'
     data_loader = MNIST_Loader.DataLoader()
@@ -202,7 +210,8 @@ if __name__ == '__main__':
         LEARNING_RATE,
         VALID_DATA,
         TEST_DATA,
-        DECAY_RATE
+        BETA1,
+        BETA2
     )
     print 'Training Finished'
     print 'Training Running Time : {0:.2f}'.format(time.time() - total_start_time)
