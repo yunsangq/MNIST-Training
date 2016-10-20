@@ -18,7 +18,7 @@ Test Data Accuracy : 95.86%
 Test Data Accuracy : 95.82%
 
 * Adam *
-Test Data Accuracy : 66.63%
+Test Data Accuracy : 95.78%
 
 * cross-entropy *
 
