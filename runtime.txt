@@ -1,31 +1,22 @@
-- sigmoid
+- sigmoid lr = 0.5
 * SGD *
 Test Data Accuracy : 95.19%
-
 * momentum *
 Test Data Accuracy : 95.56%
-
 * NAG *
 Test Data Accuracy : 95.71%
-
 * Adagrad *
 Test Data Accuracy : 95.11%
-
 * Adadelta *
 Test Data Accuracy : 95.86%
-
 * Rmsprop *
 Test Data Accuracy : 95.82%
-
 * Adam *
 Test Data Accuracy : 95.78%
-
 * cross-entropy *
-
-
 * softmax *
 
-- ReLU
+- ReLU lr = 0.01
 * SGD *
 
 * momentum *
