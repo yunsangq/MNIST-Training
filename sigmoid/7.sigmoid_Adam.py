@@ -203,7 +203,7 @@ class MLP:
 if __name__ == '__main__':
     NN = [784, 60, 10]
     LEARNING_RATE = 0.5
-    EPOCHS = 100
+    EPOCHS = 50
     MINI_BATCH_SIZE = 10
     TRAIN_DATA = None
     VALID_DATA = None

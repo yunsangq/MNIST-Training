@@ -37,7 +37,6 @@ def acc_disp(epochs, train, valid):
 class MLP:
     def __init__(self):
         self.biases = [np.random.randn(y, 1) for y in NN[1:]]
-        # self.biases = [np.zeros((y, 1)) for y in NN[1:]]
         self.weights = [np.random.randn(y, x) for x, y in zip(NN[:-1], NN[1:])]
         self.train_acc = []
         self.valid_acc = []
@@ -74,6 +73,7 @@ class MLP:
 
         # Backpropagation
         delta = self._error(activations[-1], y) * self.dReLU(activations[-1])
+        # delta = self._error(activations[-1], y) * self.dsigmoid(activations[-1])
         delta_b[-1] = delta
         delta_w[-1] = np.dot(delta, activations[-2].transpose())
 
@@ -144,11 +144,14 @@ class MLP:
     def sigmoid(self, z):
         return 1.0 / (1.0 + np.exp(-z))
 
+    def dsigmoid(self, z):
+        return z * (1.0 - z)
+
     def ReLU(self, x):
-        return x * (x > 0)
+        return np.maximum(0, x)
 
     def dReLU(self, x):
-        return 1. * (x > 0)
+        return x > 0
 
     def _error(self, output_activations, y):
         return output_activations - y
@@ -184,8 +187,8 @@ class MLP:
 
 if __name__ == '__main__':
     NN = [784, 60, 10]
-    LEARNING_RATE = 0.1
-    EPOCHS = 100
+    LEARNING_RATE = 0.5
+    EPOCHS = 50
     MINI_BATCH_SIZE = 10
     TRAIN_DATA = None
     VALID_DATA = None

@@ -91,13 +91,11 @@ class MLP:
         """
         self.before_w = [-(learn_rate / len(mini_batch)) * bw + momentum * bew
                          for bw, bew in zip(batch_w, self.before_w)]
-        self.weights = [w - (learn_rate / len(mini_batch)) * bw + momentum * bew
-                        for w, bw, bew in zip(self.weights, batch_w, self.before_w)]
+        self.weights = [w + bew for w, bew in zip(self.weights, self.before_w)]
 
         self.before_b = [-(learn_rate / len(mini_batch)) * bb + momentum * beb
                          for bb, beb in zip(batch_b, self.before_b)]
-        self.biases = [b - (learn_rate / len(mini_batch)) * bb + momentum * beb
-                       for b, bb, beb in zip(self.biases, batch_b, self.before_b)]
+        self.biases = [b + beb for b, beb in zip(self.biases, self.before_b)]
 
     def stochastic(self, train_data, epochs, mini_batch_size, learning_rate, valid_data, test_data, momentum):
         n_test = len(test_data)
@@ -186,7 +184,7 @@ class MLP:
 if __name__ == '__main__':
     NN = [784, 60, 10]
     LEARNING_RATE = 0.5
-    EPOCHS = 100
+    EPOCHS = 50
     MINI_BATCH_SIZE = 10
     TRAIN_DATA = None
     VALID_DATA = None

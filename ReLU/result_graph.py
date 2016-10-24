@@ -61,16 +61,16 @@ def load(filename):
 
 
 if __name__ == '__main__':
-    EPOCHS = 50
+    EPOCHS = 100
     
     # sgd, mu, nag, adg, add, rms, adam
-    sgd_cost, sgd_accuracy = load("SGD.json")
-    mu_cost, mu_accuracy = load("Momentum.json")
-    nag_cost, nag_accuracy = load("NAG.json")
-    adg_cost, adg_accuracy = load("Adagrad.json")
-    add_cost, add_accuracy = load("Adadelta.json")
-    rms_cost, rms_accuracy = load("RMSProp.json")
-    adam_cost, adam_accuracy = load("Adam.json")
+    sgd_cost, sgd_accuracy = load("ReLU_SGD.json")
+    mu_cost, mu_accuracy = load("ReLU_Momentum.json")
+    nag_cost, nag_accuracy = load("ReLU_NAG.json")
+    adg_cost, adg_accuracy = load("ReLU_Adagrad.json")
+    add_cost, add_accuracy = load("ReLU_Adadelta.json")
+    rms_cost, rms_accuracy = load("ReLU_RMSProp.json")
+    adam_cost, adam_accuracy = load("ReLU_Adam.json")
 
     acc_disp(EPOCHS, sgd_accuracy, mu_accuracy, nag_accuracy, adg_accuracy, add_accuracy, rms_accuracy, adam_accuracy)
     err_disp(EPOCHS, sgd_cost, mu_cost, nag_cost, adg_cost, add_cost, rms_cost, adam_cost)
