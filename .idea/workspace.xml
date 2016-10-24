@@ -19,7 +19,7 @@
     <favorites_list name="MNIST-Training" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.46411765">
+    <splitter split-orientation="horizontal" split-proportion="0.56529415">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="runtime.txt" pinned="false" current-in-tab="false">
@@ -35,8 +35,8 @@
           <file leaf-file-name="1.ReLU_SGD.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/ReLU/1.ReLU_SGD.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-1565">
-                  <caret line="86" column="58" selection-start-line="86" selection-start-column="58" selection-end-line="86" selection-end-column="58" />
+                <state relative-caret-position="425">
+                  <caret line="74" column="10" selection-start-line="74" selection-start-column="10" selection-end-line="74" selection-end-column="10" />
                   <folding />
                 </state>
               </provider>
@@ -46,17 +46,17 @@
       </split-first>
       <split-second>
         <leaf>
-          <file leaf-file-name="result_graph.py" pinned="false" current-in-tab="false">
+          <file leaf-file-name="result_graph.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/sigmoid/result_graph.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="133">
-                  <caret line="8" column="61" selection-start-line="8" selection-start-column="61" selection-end-line="8" selection-end-column="61" />
+                <state relative-caret-position="285">
+                  <caret line="16" column="32" selection-start-line="16" selection-start-column="32" selection-end-line="16" selection-end-column="32" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="1.sigmoid_SGD.py" pinned="false" current-in-tab="true">
+          <file leaf-file-name="1.sigmoid_SGD.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/sigmoid/1.sigmoid_SGD.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="2506">
@@ -140,10 +140,10 @@
         <option value="$PROJECT_DIR$/sigmoid/6.sigmoid_RMSProp.py" />
         <option value="$PROJECT_DIR$/sigmoid/7.sigmoid_Adam.py" />
         <option value="$PROJECT_DIR$/sigmoid/result_graph.py" />
-        <option value="$PROJECT_DIR$/ReLU/1.ReLU_SGD.py" />
         <option value="$PROJECT_DIR$/mnist_loader.py" />
         <option value="$PROJECT_DIR$/network.py" />
         <option value="$PROJECT_DIR$/test.py" />
+        <option value="$PROJECT_DIR$/ReLU/1.ReLU_SGD.py" />
       </list>
     </option>
   </component>
@@ -207,7 +207,7 @@
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
-  <component name="RunManager" selected="Python.test">
+  <component name="RunManager" selected="Python.result_graph">
     <configuration default="false" name="1.ReLU_SGD" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -436,10 +436,10 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.test" />
-        <item index="1" class="java.lang.String" itemvalue="Python.network" />
-        <item index="2" class="java.lang.String" itemvalue="Python.1.ReLU_SGD" />
-        <item index="3" class="java.lang.String" itemvalue="Python.result_graph" />
+        <item index="0" class="java.lang.String" itemvalue="Python.result_graph" />
+        <item index="1" class="java.lang.String" itemvalue="Python.1.ReLU_SGD" />
+        <item index="2" class="java.lang.String" itemvalue="Python.test" />
+        <item index="3" class="java.lang.String" itemvalue="Python.network" />
         <item index="4" class="java.lang.String" itemvalue="Python.ReLU_sigmoid_result_graph" />
       </list>
     </recent_temporary>
@@ -466,7 +466,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.34770384" sideWeight="0.50208336" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32845744" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3561387" sideWeight="0.49791667" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30740392" sideWeight="0.49791667" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -493,13 +493,6 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ReLU/1.ReLU_SGD.py</url>
-          <line>63</line>
-          <option name="timeStamp" value="292" />
-        </line-breakpoint>
-      </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
@@ -873,14 +866,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/sigmoid/result_graph.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="133">
-          <caret line="8" column="61" selection-start-line="8" selection-start-column="61" selection-end-line="8" selection-end-column="61" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/graph/ReLU_SGD.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -931,8 +916,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ReLU/1.ReLU_SGD.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1565">
-          <caret line="86" column="58" selection-start-line="86" selection-start-column="58" selection-end-line="86" selection-end-column="58" />
+        <state relative-caret-position="425">
+          <caret line="74" column="10" selection-start-line="74" selection-start-column="10" selection-end-line="74" selection-end-column="10" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sigmoid/result_graph.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="16" column="32" selection-start-line="16" selection-start-column="32" selection-end-line="16" selection-end-column="32" />
           <folding />
         </state>
       </provider>

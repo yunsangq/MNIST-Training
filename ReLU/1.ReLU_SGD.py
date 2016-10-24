@@ -72,8 +72,8 @@ class MLP:
             activations.append(activation)
 
         # Backpropagation
-        delta = self._error(activations[-1], y) * self.dReLU(activations[-1])
-        # delta = self._error(activations[-1], y) * self.dsigmoid(activations[-1])
+        # delta = self._error(activations[-1], y) * self.dReLU(activations[-1])
+        delta = self._error(activations[-1], y) * self.dsigmoid(activations[-1])
         delta_b[-1] = delta
         delta_w[-1] = np.dot(delta, activations[-2].transpose())
 
@@ -187,7 +187,7 @@ class MLP:
 
 if __name__ == '__main__':
     NN = [784, 60, 10]
-    LEARNING_RATE = 0.5
+    LEARNING_RATE = 0.025
     EPOCHS = 50
     MINI_BATCH_SIZE = 10
     TRAIN_DATA = None
