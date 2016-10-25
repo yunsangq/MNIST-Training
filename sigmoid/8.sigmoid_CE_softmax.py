@@ -8,7 +8,7 @@ import json
 
 def err_disp(epochs, train, valid):
     fig = plt.figure(facecolor='white')
-    fig.canvas.set_window_title('sigmoid_softmax_Cost per Epoch')
+    fig.canvas.set_window_title('sigmoid_cross-entropy_Cost per Epoch')
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(range(epochs), train, color='#1F77B4', label='Training')
     ax.plot(range(epochs), valid, color='#b41f1f', label='Validation')
@@ -22,7 +22,7 @@ def err_disp(epochs, train, valid):
 
 def acc_disp(epochs, train, valid):
     fig = plt.figure(facecolor='white')
-    fig.canvas.set_window_title('sigmoid_softmax_Accuracy per Epoch')
+    fig.canvas.set_window_title('sigmoid_cross-entropy_Accuracy per Epoch')
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(range(epochs), train, color='#1F77B4', label='Training')
     ax.plot(range(epochs), valid, color='#b41f1f', label='Validation')
@@ -44,8 +44,13 @@ class MLP:
         self.valid_cost = []
 
     def feed_forward(self, inputs):
+        check = 0
         for b, w in zip(self.biases, self.weights):
-            inputs = self.sigmoid(np.dot(w, inputs) + b)
+            if check == 0:
+                inputs = self.sigmoid(np.dot(w, inputs) + b)
+                check += 1
+            else:
+                inputs = self.softmax(np.dot(w, inputs) + b)
         return inputs
 
     def train(self, x, y):
@@ -56,15 +61,19 @@ class MLP:
         activation = x
         activations = [x]
 
+        check = 0
         for b, w in zip(self.biases, self.weights):
             z = np.dot(w, activation) + b
-            activation = self.sigmoid(z)
+            if check == 0:
+                activation = self.sigmoid(z)
+                check += 1
+            else:
+                activation = self.softmax(z)
             activations.append(activation)
 
-        activations[-1] = self.softmax(activations[-1])
-
         # Backpropagation
-        delta = self._error(activations[-1], y) * self.dsigmoid(activations[-1])
+        # delta = self._error(activations[-1], y) * self.dsigmoid(activations[-1])
+        delta = self._error(activations[-1], y)
         delta_b[-1] = delta
         delta_w[-1] = np.dot(delta, activations[-2].transpose())
 
@@ -117,7 +126,7 @@ class MLP:
         print 'Test Data Cost : {0:.2f}'.format(error)
         print 'Test Data Accuracy : {0:.2f}%'.format(accuracy)
 
-        self.save("sigmoid_softmax.json", accuracy)
+        self.save("sigmoid_cross-entropy.json", accuracy)
 
         return self.train_acc, self.valid_acc, self.train_cost, self.valid_cost
 
@@ -156,16 +165,18 @@ class MLP:
     def get_train_cost(self, test_data):
         results = 0.0
         for (x, y) in test_data:
-            results += 0.5 * np.linalg.norm(self._error(self.feed_forward(x), y)) ** 2
-        results /= float(len(test_data))
+            a = self.feed_forward(x)
+            results += np.sum(np.nan_to_num(-y * np.log(a) - (1 - y) * np.log(1 - a)))
+        results /= len(test_data)
         return results
 
     def get_cost(self, test_data):
         results = 0.0
         for (x, y) in test_data:
+            a = self.feed_forward(x)
             result_labels = self.vectorresult(y)
-            results += 0.5 * np.linalg.norm(self._error(self.feed_forward(x), result_labels)) ** 2
-        results /= float(len(test_data))
+            results += np.sum(np.nan_to_num(-result_labels * np.log(a) - (1 - result_labels) * np.log(1 - a)))
+        results /= len(test_data)
         return results
 
     def vectorresult(self, j):
