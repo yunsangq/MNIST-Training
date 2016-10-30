@@ -2,17 +2,24 @@ import matplotlib.pyplot as plt
 import json
 
 
-def err_disp(epochs, sgd, mu, nag, adg, add, rms, adam):
+def err_disp(epochs, sgd, mu, nag, adg, add, rms, adam, ces, l2, l1, dropout, weight, my):
     fig = plt.figure(facecolor='white')
     fig.canvas.set_window_title('Cost per Epoch')
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(range(epochs), sgd, color='#FF0000', label='SGD')
-    ax.plot(range(epochs), mu, color='#A0522D', label='Momentum')
-    ax.plot(range(epochs), nag, color='#FF8C00', label='NAG')
-    ax.plot(range(epochs), adg, color='#B8860B', label='Adagrad')
-    ax.plot(range(epochs), add, color='#7FFF00', label='Adadelta')
-    ax.plot(range(epochs), rms, color='#808000', label='RMSProp')
-    ax.plot(range(epochs), adam, color='#556B2F', label='Adam')
+    ax.plot(range(epochs), ces, color='#266576', label='CE+Softmax')
+    ax.plot(range(epochs), l2, color='#467489', label='L2')
+    ax.plot(range(epochs), l1, color='#7d94ab', label='L1')
+    ax.plot(range(epochs), dropout, color='#a784b8', label='Dropout')
+    ax.plot(range(epochs), weight, color='#70c12e', label='Weight Init')
+    ax.plot(range(epochs), my, color='#ff2400', label='SangYun')
+    ax.plot(range(epochs), sgd, color='#db5c00', label='SGD')
+    ax.plot(range(epochs), mu, color='#d68c1a', label='Momentum')
+    ax.plot(range(epochs), nag, color='#cbbb6e', label='NAG')
+    ax.plot(range(epochs), adg, color='#99aa3d', label='Adagrad')
+    ax.plot(range(epochs), add, color='#519b13', label='Adadelta')
+    ax.plot(range(epochs), rms, color='#6d4d9b', label='RMSProp')
+    ax.plot(range(epochs), adam, color='#7da7d9', label='Adam')
+
     ax.set_xlabel('Epochs')
     ax.set_ylabel('Cost(Valid)')
     box = ax.get_position()
@@ -21,17 +28,24 @@ def err_disp(epochs, sgd, mu, nag, adg, add, rms, adam):
     plt.show()
 
 
-def acc_disp(epochs, sgd, mu, nag, adg, add, rms, adam):
+def acc_disp(epochs, sgd, mu, nag, adg, add, rms, adam, ces, l2, l1, dropout, weight, my):
     fig = plt.figure(facecolor='white')
     fig.canvas.set_window_title('Accuracy per Epoch')
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(range(epochs), sgd, color='#FF0000', label='SGD')
-    ax.plot(range(epochs), mu, color='#A0522D', label='Momentum')
-    ax.plot(range(epochs), nag, color='#FF8C00', label='NAG')
-    ax.plot(range(epochs), adg, color='#B8860B', label='Adagrad')
-    ax.plot(range(epochs), add, color='#7FFF00', label='Adadelta')
-    ax.plot(range(epochs), rms, color='#808000', label='RMSProp')
-    ax.plot(range(epochs), adam, color='#556B2F', label='Adam')
+    ax.plot(range(epochs), ces, color='#266576', label='CE+Softmax')
+    ax.plot(range(epochs), l2, color='#467489', label='L2')
+    ax.plot(range(epochs), l1, color='#7d94ab', label='L1')
+    ax.plot(range(epochs), dropout, color='#a784b8', label='Dropout')
+    ax.plot(range(epochs), weight, color='#70c12e', label='Weight Init')
+    ax.plot(range(epochs), my, color='#ff2400', label='SangYun')
+    ax.plot(range(epochs), sgd, color='#db5c00', label='SGD')
+    ax.plot(range(epochs), mu, color='#d68c1a', label='Momentum')
+    ax.plot(range(epochs), nag, color='#cbbb6e', label='NAG')
+    ax.plot(range(epochs), adg, color='#99aa3d', label='Adagrad')
+    ax.plot(range(epochs), add, color='#519b13', label='Adadelta')
+    ax.plot(range(epochs), rms, color='#6d4d9b', label='RMSProp')
+    ax.plot(range(epochs), adam, color='#7da7d9', label='Adam')
+
     ax.set_xlabel('Epochs')
     ax.set_ylabel('Accuracy(Valid)')
     box = ax.get_position()
@@ -63,7 +77,7 @@ def load(filename):
 if __name__ == '__main__':
     EPOCHS = 50
     
-    # sgd, mu, nag, adg, add, rms, adam
+    # sgd, mu, nag, adg, add, rms, adam, ces, l2, l1, dropout, weight, my
     sgd_cost, sgd_accuracy = load("sigmoid_SGD.json")
     mu_cost, mu_accuracy = load("sigmoid_Momentum.json")
     nag_cost, nag_accuracy = load("sigmoid_NAG.json")
@@ -72,6 +86,15 @@ if __name__ == '__main__':
     rms_cost, rms_accuracy = load("sigmoid_RMSProp.json")
     adam_cost, adam_accuracy = load("sigmoid_Adam.json")
 
-    acc_disp(EPOCHS, sgd_accuracy, mu_accuracy, nag_accuracy, adg_accuracy, add_accuracy, rms_accuracy, adam_accuracy)
-    err_disp(EPOCHS, sgd_cost, mu_cost, nag_cost, adg_cost, add_cost, rms_cost, adam_cost)
+    ces_cost, ces_accuracy = load("sigmoid_CE_softmax.json")
+    l2_cost, l2_accuracy = load("sigmoid_l2.json")
+    l1_cost, l1_accuracy = load("sigmoid_l1.json")
+    dropout_cost, dropout_accuracy = load("sigmoid_CE_softmax_dropout.json")
+    weight_cost, weight_accuracy = load("sigmoid_L2_weight.json")
+    my_cost, my_accuracy = load("sigmoid_my_1.json")
+
+    acc_disp(EPOCHS, sgd_accuracy, mu_accuracy, nag_accuracy, adg_accuracy, add_accuracy, rms_accuracy, adam_accuracy,
+             ces_accuracy, l2_accuracy, l1_accuracy, dropout_accuracy, weight_accuracy, my_accuracy)
+    err_disp(EPOCHS, sgd_cost, mu_cost, nag_cost, adg_cost, add_cost, rms_cost, adam_cost,
+             ces_cost, l2_cost, l1_cost, dropout_cost, weight_cost, my_cost)
 
